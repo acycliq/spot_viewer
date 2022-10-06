@@ -1,14 +1,35 @@
 
 function run() {
     console.log('app starts');
-    CONFIGSETTINGS = config().get('default');
-    CONFIGSETTINGS.geneData[0]["name"] = "geneData";
+    var cookie = sessionStorage['myvariable']
 
+    if (!cookie){ // if you dont have cookie, run the default selection
+        console.log('No cookie, starting with NLGF dataset')
+        CONFIGSETTINGS = config().get('NLGF')
+    }
+    else {
+        console.log('Found cookie: ' + cookie)
+        CONFIGSETTINGS = config().get(cookie)
+    }
+
+    CONFIGSETTINGS.geneData[0]["name"] = "geneData";
     fetcher([CONFIGSETTINGS.geneData]).then(
         result => make_package(result),
         error => alert(error) // doesn't run
     );
+
 }
+
+//function run() {
+//    console.log('app starts');
+//    CONFIGSETTINGS = config().get('default');
+//    CONFIGSETTINGS.geneData[0]["name"] = "geneData";
+//
+//    fetcher([CONFIGSETTINGS.geneData]).then(
+//        result => make_package(result),
+//        error => alert(error) // doesn't run
+//    );
+//}
 
 
 const fetcher = (filenames) => {

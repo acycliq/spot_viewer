@@ -174,6 +174,17 @@
 
 <div id="jstree_id"></div>
 
+<div id="mydropdown" class="dropdown map-content" >
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+            Select Data
+            <span class="caret"></span>
+        </button>
+        <div class="dropdown-menu">
+            <li><a class="dropdown-item" href="#" onclick='dispatcher("NLGF")'>NLGF</a></li>
+            <li><a class="dropdown-item" href="#" onclick='dispatcher("NLGF_2")'>NLGF_2</a></li>
+        </div>
+    </div>
+
 <div id="legend" class="map-content">
     <a id="legend-link" target="_blank">Gene Panel &raquo;</a>
     <script>$('#legend').hide();</script>
@@ -182,6 +193,29 @@
 
 <canvas class="webgl"></canvas>
 <div id="my-gui-container"></div>
+
+<script>
+    function dispatcher(x) {
+        console.log('you clicked ' + x)
+
+        //save a cookie
+        sessionStorage['myvariable'] = x;
+
+        //reload page
+        location.reload(true);
+    }
+</script>
+
+<script>
+    // when document ready, show selected on dropdown
+    $(function() {
+        if (sessionStorage['myvariable']){
+            d3.select('.dropdown-toggle').node().innerHTML = sessionStorage['myvariable'] + '  ';
+            $('.dropdown-toggle').append("<span class='caret'></span>");
+        }
+    });
+</script>
+
 <script>
     localStorage.clear();
     console.log('Local storage cleared');
