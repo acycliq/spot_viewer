@@ -6,7 +6,7 @@ function config() {
             img_height: 2310,
             img_depth: 45 * 6.0121,
             particle_size: 8000.0,
-            geneData: [{mediaLink: './data/NLGF/geneData.tsv', size: "22642365"}],
+            geneData: [{mediaLink: './data/NLGF/geneData.tsv', size: "22349215"}],
         },
         {   // 2.
             name: 'NLGF_2',
