@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Title</title>
+
+    <script src='three.js/build/three.js'></script>
+    <script src='three.js/examples/js/controls/OrbitControls.js'></script>
+    <script src='three.js/examples/js/controls/PointerLockControls.js'></script>
+    <script src="src/shaders/glyphs/vertex.js"></script>
+
+
+</head>
+<body>
+
+
+<canvas class="webgl"></canvas>
+
+<script>
+
+// Canvas
+const canvas = document.querySelector('canvas.webgl')
+
+// Scene
+const scene = new THREE.Scene()
+
+const particleGeometry = new THREE.BufferGeometry()
+const count = 50000
+const particle_size = 50.0
+
+const positions = new Float32Array(count * 3)
+const colors = new Float32Array(positions.length);
+const sizes = new Float32Array(positions.length/3);
+for (let i=0; i<count*3; i++){
+    positions[i] = (Math.random() - 0.5) * 4
+    colors[i] = Math.random()
+}
+for (let i = 0; i < positions.length; i += 3) {
+    sizes[i/3] = particle_size;
+    colors[i] = 1.0;
+    colors[i + 1] = 0.0;
+    colors[i + 2] = 0.0;
+}
+
+particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
+particleGeometry.setAttribute('mycolor', new THREE.BufferAttribute(colors, 3))
+particleGeometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+
+const opacity = 0.8;
+var particlesMaterial = new THREE.ShaderMaterial({
+    blending: THREE.NormalBlending,
+    vertexShader: vShader_glyphs,
+    fragmentShader: `
+        varying vec3 view;
+        uniform float zThres;
+
+        float draw_circle(vec2 coord, float radius) {
+            // calculate the distance from the center(which is at [0.5, 0.5])
+            float d = distance(gl_PointCoord, vec2(0.5));
+
+            // this will return 1.0 for all fragments inside the radius
+            return step(d, radius);
+        }
+
+        uniform float r;
+        uniform float g;
+        uniform float b;
+        uniform float a;
+        varying vec3 vColor;
+
+        void main() {
+          // gl_FragColor = vec4(1.0, 1.0, 0.0, 0.5);
+          if (view.z > zThres){
+            // points at the far back
+            // gl_FragColor = vec4(vColor.r, vColor.g, vColor.b, a);
+            gl_FragColor = vec4(1.0, 1.0, 0.0, 0.5);
+          }
+          else {
+            float circle_1 = draw_circle(gl_PointCoord, 0.5);
+            float circle_2 = 1.0 - draw_circle(gl_PointCoord, 0.4);
+            vec3 color = vec3(circle_1 * circle_2);
+
+            gl_FragColor = vec4(color  * vColor, a);
+            if (gl_FragColor.r + gl_FragColor.g + gl_FragColor.b == 0.0) discard;
+          }
+        }
+        `,
+    uniforms: {
+        glyphSize: {value: 12},
+        dotSize: {value: 2},
+        u_resolution: {value: new THREE.Vector2(window.innerWidth, window.innerHeight)},
+        zThres: {value: 1000},
+        attenuate: {value: true},
+        r: {value: 1.0},
+        g: {value: 0.0},
+        b: {value: 0.0},
+        a: {value: opacity}
+    }
+    });
+// Points
+const particles = new THREE.Points(particleGeometry, particlesMaterial)
+scene.add(particles)
+
+
+const wsizes = {
+    width: window.innerWidth,
+    height: window.innerHeight
+}
+
+window.addEventListener('resize', () =>
+{
+    // Update sizes
+    wsizes.width = window.innerWidth
+    wsizes.height = window.innerHeight
+
+    // Update camera
+    camera.aspect = wsizes.width / wsizes.height
+    camera.updateProjectionMatrix()
+
+    // Update renderer
+    renderer.setSize(wsizes.width, wsizes.height)
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+})
+
+
+// Base camera
+camera = new THREE.PerspectiveCamera(75, wsizes.width / wsizes.height, 0.1, 100)
+camera.position.z = 3
+
+// Controls
+controls = new THREE.OrbitControls(camera, canvas)
+controls.enableDamping = true
+
+//Renderer
+const renderer = new THREE.WebGLRenderer({
+    canvas: canvas
+})
+renderer.setSize(wsizes.width, wsizes.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+
+//Animate
+function animate() {
+    requestAnimationFrame(animate);
+    renderer.render(scene, camera);
+}
+animate()
+
+</script>
+
+
+</body>
+</html>
